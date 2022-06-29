@@ -1,18 +1,31 @@
 import React from "react";
+import Lecture from "./Lecture";
+import { DateTime } from "luxon";
+import { getSavedData, getLectures } from "./Api";
+import { useContext } from "react";
+import AlertContext from "./AlertContext";
 
-function LectureList() {
+function LecturesList() {
+  const savedAssignments = getSavedData("lecture") || [];
+  const [lectureData, setData] = React.useState(savedAssignments);
+  const { showAlert } = useContext(AlertContext);
+
+  React.useEffect(() => {
+    const users = getLectures({ showAlert });
+    users.then((response) => {
+      setData(response);
+    });
+    showAlert("Lectures Loaded");
+  }, []);
+
   return (
-    <>
-      <h1 className="text-2xl font-semibold pl-4 pt-16 pb-4">Session List</h1>
-
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="flex items-center text-5xl justify-center px-4 py-4 mt-2 bg-gray-50 sm:px-6 lg:px-8">
-          {" "}
-          <div className="w-full max-w-4xl space-y-8">Lecture List</div>
-        </div>
-      </div>
-    </>
+    <div className="m-10 bg-gray-100 p-4 h-fit w-full rounded-md">
+      <h1 className="text-2xl font-semibold ">Lecture List </h1>
+      {lectureData.map((d) => (
+        <Lecture key={d.id} {...d} />
+      ))}
+    </div>
   );
 }
 
-export default LectureList;
+export default LecturesList;

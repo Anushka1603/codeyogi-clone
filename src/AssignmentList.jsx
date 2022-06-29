@@ -1,35 +1,41 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import Assignment from "./Assignment";
 import axios from "axios";
-import AssignmentRow from "./AssignmentRow";
+import { getSavedData, saveData, getAssignments } from "./Api";
+import { useContext } from "react";
+import AlertContext from "./AlertContext";
 
-function AssignmentList() {
-  const [assignments, setAssignments] = useState([]);
-  useEffect(() => {
-    const token = axios.get(`https://api.codeyogi.io/batches/1/assignments`, {
-      withCredentials: true,
+function AssignmentList(props) {
+  const savedAssignments = getSavedData("assignments") || [];
+  const [assignmentData, setData] = React.useState(savedAssignments);
+  const { showAlert } = useContext(AlertContext);
+
+  React.useEffect(() => {
+    const promise = getAssignments({ showAlert });
+    promise.then((response) => {
+      setData(response);
+      saveData("assignments", response);
+      console.log(response);
     });
-    token.then((response) => {
-      setAssignments(response.data);
-    });
+    showAlert("Assignments Loaded");
   }, []);
 
   return (
-    <>
-      <h1 className="text-2xl font-semibold pl-4 pt-16 pb-4">
-        Assignment List
-      </h1>
-
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="flex items-center text-5xl justify-center px-4 py-4 mt-2 bg-gray-50 sm:px-6 lg:px-8">
-          <div className="w-full max-w-4xl space-y-8">Assignment List</div>
-        </div>
-        <div className="h-screen bg-gray-100">
-          {assignments.map((a) => (
-            <AssignmentRow assignment={a} key={a.id}></AssignmentRow>
-          ))}
-        </div>
-      </div>
-    </>
+    <div className="m-10 bg-gray-100 p-4 h-fit w-full rounded-md">
+      <h1 className="text-2xl pl-3 pt-2 font-semibold ">Assignment List</h1>
+      {assignmentData.map((d) => (
+        <Assignment
+          key={d.id}
+          detailId={d.id}
+          count={d.id}
+          href={d.submissions}
+          about={d.title}
+          date={d.created_at}
+          dueDate={d.due_date}
+        />
+      ))}
+    </div>
   );
 }
+
 export default AssignmentList;
